@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Deeproq Analyzer - HTTP Archive telemetry waste map">
+  <title>Deeproq Analyzer</title>
+  <style>
+ :root{ --bg:#07111f; --bg2:#0b1728; --panel:#0f1d30; --panel2:#12233a; --panel3:#162a44; --border:#223754; --text:#edf5ff; --muted:#8ea4bd; --muted2:#607994; --blue:#4da3ff; --cyan:#38d9ff; --purple:#9b7cff; --green:#32d583; --yellow:#f7c948; --orange:#ff9f43; --red:#ff5d73; --shadow:0 18px 60px rgba(0,0,0,.22); --radius:16px; } *{ box-sizing:border-box; } html{ scroll-behavior:smooth; } body{ margin:0; min-height:100vh; color:var(--text); background: radial-gradient(circle at 15% 0%,rgba(77,163,255,.10),transparent 32%), radial-gradient(circle at 90% 10%,rgba(155,124,255,.09),transparent 28%), var(--bg); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; } button, input, select{ font:inherit; } button{ cursor:pointer; } .app{ width:min(1600px,calc(100% - 32px)); margin:auto; padding:28px 0 70px; } /* ------------------------------------------------------- HEADER ------------------------------------------------------- */ .topbar{ display:flex; justify-content:space-between; gap:30px; align-items:flex-start; margin-bottom:25px; } .brand{ display:flex; gap:14px; align-items:center; } .logo{ width:48px; height:48px; display:grid; place-items:center; border-radius:14px; background: linear-gradient(135deg,var(--blue),var(--purple)); box-shadow: 0 10px 35px rgba(77,163,255,.25); font-weight:1000; color:white; letter-spacing:-1px; } h1{ margin:0; font-size:31px; line-height:1; letter-spacing:-1.2px; } .brand-sub{ margin-top:7px; color:var(--muted); font-size:12px; } .top-actions{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; justify-content:flex-end; } .btn{ border:1px solid var(--border); color:var(--text); background:var(--panel); padding:9px 13px; border-radius:9px; font-size:11px; font-weight:800; } .btn:hover{ background:var(--panel2); border-color:#355477; } .btn.primary{ color:white; border-color:#428dd8; background:linear-gradient(135deg,#2673c4,#5c52d9); } /* ------------------------------------------------------- DROPZONE ------------------------------------------------------- */ .dropzone{ border:1px dashed #385878; border-radius:20px; background: linear-gradient( 135deg, rgba(77,163,255,.06), rgba(155,124,255,.04) ), var(--panel); min-height:185px; display:flex; justify-content:center; align-items:center; text-align:center; transition:.2s ease; cursor:pointer; box-shadow:var(--shadow); margin-bottom:18px; } .dropzone:hover, .dropzone.dragover{ border-color:var(--cyan); background: linear-gradient( 135deg, rgba(77,163,255,.12), rgba(155,124,255,.08) ), var(--panel); transform:translateY(-1px); } #fileInput{ display:none; } .upload-icon{ width:58px; height:58px; margin:auto auto 12px; border-radius:17px; display:grid; place-items:center; color:var(--cyan); background:rgba(56,217,255,.08); border:1px solid rgba(56,217,255,.18); font-size:25px; } .upload-title{ font-size:18px; font-weight:900; } .upload-sub{ color:var(--muted); font-size:11px; margin-top:6px; } /* ------------------------------------------------------- STATUS ------------------------------------------------------- */ .status{ display:none; padding:11px 14px; border:1px solid var(--border); border-radius:10px; background:var(--panel); color:var(--muted); font-size:11px; margin-bottom:18px; } .status.visible{ display:block; } /* ------------------------------------------------------- CONTROLS ------------------------------------------------------- */ .controls{ display:none; grid-template-columns:1.1fr .8fr .8fr .8fr; gap:10px; margin-bottom:18px; } .controls.visible{ display:grid; } .control{ background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:11px; } .control label{ display:block; color:var(--muted); font-size:9px; font-weight:900; text-transform:uppercase; letter-spacing:.07em; margin-bottom:6px; } .control input, .control select{ width:100%; color:var(--text); background:#091626; border:1px solid var(--border); border-radius:8px; padding:8px; outline:none; } .control input:focus, .control select:focus{ border-color:var(--blue); } /* ------------------------------------------------------- DASHBOARD ------------------------------------------------------- */ .dashboard{ display:none; } .dashboard.visible{ display:block; } /* ------------------------------------------------------- HERO METRICS ------------------------------------------------------- */ .metrics{ display:grid; grid-template-columns:1.35fr repeat(4,1fr); gap:12px; margin-bottom:16px; } .metric{ min-height:142px; padding:17px; background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); } .metric.primary{ background: radial-gradient(circle at 100% 0%,rgba(56,217,255,.20),transparent 38%), linear-gradient(135deg,#112e4d,#20245a); border-color:#2f6190; } .metric-label{ color:var(--muted); text-transform:uppercase; font-size:9px; letter-spacing:.09em; font-weight:900; } .metric.primary .metric-label{ color:#b7d8f6; } .metric-value{ font-size:29px; font-weight:950; letter-spacing:-1px; margin-top:10px; } .metric.primary .metric-value{ font-size:39px; color:white; } .metric-detail{ margin-top:5px; color:var(--muted); font-size:10px; line-height:1.45; } /* ------------------------------------------------------- PANELS ------------------------------------------------------- */ .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px; } .panel{ background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; } .panel-head{ padding:15px 17px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; gap:15px; align-items:center; } .panel-title{ margin:0; font-size:14px; font-weight:900; } .panel-subtitle{ margin:4px 0 0; color:var(--muted); font-size:10px; } .panel-body{ padding:16px; } /* ------------------------------------------------------- WASTE MAP ------------------------------------------------------- */ .waste-map{ margin-bottom:15px; } .map-toolbar{ display:flex; gap:8px; flex-wrap:wrap; } .search{ min-width:220px; padding:8px 10px; color:var(--text); background:#091626; border:1px solid var(--border); border-radius:8px; outline:none; font-size:11px; } .search:focus{ border-color:var(--blue); } .map-list{ max-height:760px; overflow:auto; } .map-row{ border-bottom:1px solid rgba(34,55,84,.65); } .map-row:last-child{ border-bottom:0; } .map-main{ display:grid; grid-template-columns:36px minmax(250px,1fr) 110px 110px 110px 130px; gap:10px; align-items:center; padding:13px 16px; cursor:pointer; } .map-main:hover{ background:rgba(77,163,255,.035); } .map-chevron{ color:var(--muted2); font-size:13px; transition:.15s; } .map-row\.open .map-chevron{ transform:rotate(90deg); color:var(--cyan); } .map-source{ min-width:0; } .source-title{ font-size:11px; font-weight:900; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; } .source-path{ color:var(--muted); font-size:9px; margin-top:3px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; } .map-number{ text-align:right; font-size:11px; font-weight:850; } .map-number small{ display:block; color:var(--muted); font-size:8px; font-weight:600; margin-top:2px; } .map-expand{ display:none; padding:0 16px 15px 61px; } .map-row\.open .map-expand{ display:block; } .level{ border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-top:8px; background:#0b1829; } .level-head{ padding:9px 11px; display:flex; justify-content:space-between; gap:10px; border-bottom:1px solid var(--border); color:#bdd3e9; font-size:10px; font-weight:900; } .level-body{ padding:0; } .detail-row{ display:grid; grid-template-columns:minmax(230px,1fr) 100px 100px 100px 100px; gap:10px; align-items:center; padding:9px 11px; border-bottom:1px solid rgba(34,55,84,.55); font-size:10px; } .detail-row:last-child{ border-bottom:0; } .detail-name{ font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .detail-meta{ color:var(--muted); font-size:8px; margin-top:3px; } .reason{ color:#b6c8dc; line-height:1.35; } .recommend{ color:#78d9ad; line-height:1.35; } /* ------------------------------------------------------- BADGES ------------------------------------------------------- */ .badge{ display:inline-flex; align-items:center; justify-content:center; border-radius:999px; padding:4px 8px; font-size:8px; line-height:1; font-weight:950; text-transform:uppercase; letter-spacing:.05em; } .badge.red{ background:rgba(255,93,115,.12); border:1px solid rgba(255,93,115,.22); color:#ff8b9b; } .badge.orange{ background:rgba(255,159,67,.12); border:1px solid rgba(255,159,67,.22); color:#ffc078; } .badge.green{ background:rgba(50,213,131,.10); border:1px solid rgba(50,213,131,.20); color:#73e6a9; } .badge.blue{ background:rgba(77,163,255,.10); border:1px solid rgba(77,163,255,.20); color:#83c5ff; } .badge.purple{ background:rgba(155,124,255,.10); border:1px solid rgba(155,124,255,.20); color:#c2b0ff; } .badge.gray{ background:rgba(142,164,189,.08); border:1px solid rgba(142,164,189,.14); color:#9cb1c8; } /* ------------------------------------------------------- BAR CHART ------------------------------------------------------- */ .bar-row{ margin-bottom:14px; } .bar-label{ display:flex; justify-content:space-between; gap:10px; font-size:10px; margin-bottom:6px; } .bar-label span{ color:var(--muted); } .bar-track{ height:9px; background:#091626; border-radius:99px; overflow:hidden; } .bar-fill{ height:100%; min-width:0; border-radius:inherit; } .bar-blue{ background:linear-gradient(90deg,#3188df,#45c9ff); } .bar-orange{ background:linear-gradient(90deg,#d77c28,#ffc05a); } .bar-purple{ background:linear-gradient(90deg,#7355d7,#aa8cff); } .bar-red{ background:linear-gradient(90deg,#cc3852,#ff6d82); } /* ------------------------------------------------------- TABLES ------------------------------------------------------- */ .table-wrap{ overflow:auto; } table{ width:100%; border-collapse:collapse; min-width:800px; } th{ text-align:left; color:var(--muted2); font-size:8px; text-transform:uppercase; letter-spacing:.07em; font-weight:900; padding:10px 12px; background:#0c192a; border-bottom:1px solid var(--border); } td{ padding:11px 12px; border-bottom:1px solid rgba(34,55,84,.65); font-size:10px; vertical-align:top; } tbody tr:hover{ background:rgba(77,163,255,.035); } td.num, th.num{ text-align:right; white-space:nowrap; } .primary-text{ color:white; font-weight:900; } .muted{ color:var(--muted); } .mini{ display:block; color:var(--muted2); font-size:8px; margin-top:3px; } /* ------------------------------------------------------- VENDOR ------------------------------------------------------- */ .vendor-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:7px; } .vendor{ padding:10px; border-radius:9px; background:#0a1727; border:1px solid var(--border); cursor:pointer; } .vendor:hover{ border-color:#42678d; } .vendor.active{ background:rgba(77,163,255,.08); border-color:var(--blue); } .vendor-name{ font-weight:900; font-size:10px; } .vendor-rate{ color:var(--muted); font-size:8px; line-height:1.35; margin-top:4px; } /* ------------------------------------------------------- FINDINGS ------------------------------------------------------- */ .finding{ padding:12px; border-radius:10px; margin-bottom:9px; border:1px solid var(--border); background:#0a1727; font-size:10px; line-height:1.5; } .finding:last-child{ margin-bottom:0; } .finding strong{ color:white; } .finding.red{ border-color:rgba(255,93,115,.25); background:rgba(255,93,115,.045); } .finding.orange{ border-color:rgba(255,159,67,.25); background:rgba(255,159,67,.045); } .finding.green{ border-color:rgba(50,213,131,.25); background:rgba(50,213,131,.045); } .finding.blue{ border-color:rgba(77,163,255,.25); background:rgba(77,163,255,.045); } /* ------------------------------------------------------- EMPTY ------------------------------------------------------- */ .empty{ padding:35px 20px; text-align:center; color:var(--muted); font-size:11px; } /* ------------------------------------------------------- FOOTER ------------------------------------------------------- */ .footer{ margin-top:20px; color:var(--muted2); font-size:9px; line-height:1.6; } /* ------------------------------------------------------- RESPONSIVE ------------------------------------------------------- */ @media(max-width:1250px){ .metrics{ grid-template-columns:repeat(3,1fr); } .metric.primary{ grid-column:span 3; } .vendor-grid{ grid-template-columns:repeat(4,1fr); } .map-main{ grid-template-columns:30px minmax(220px,1fr) 90px 90px 90px; } .map-main .hide-md{ display:none; } } @media(max-width:900px){ .topbar{ flex-direction:column; } .top-actions{ justify-content:flex-start; } .controls{ grid-template-columns:1fr 1fr; } .grid2{ grid-template-columns:1fr; } .metrics{ grid-template-columns:1fr 1fr; } .metric.primary{ grid-column:span 2; } .vendor-grid{ grid-template-columns:repeat(2,1fr); } .map-main{ grid-template-columns:28px 1fr 80px; } .map-main .hide-sm{ display:none; } .map-expand{ padding-left:45px; } .detail-row{ grid-template-columns:1fr 80px 80px; } .detail-row .hide-sm{ display:none; } } @media(max-width:600px){ .app{ width:min(100% - 20px,1600px); } h1{ font-size:25px; } .controls{ grid-template-columns:1fr; } .metrics{ grid-template-columns:1fr; } .metric.primary{ grid-column:span 1; } .vendor-grid{ grid-template-columns:1fr 1fr; } .map-main{ grid-template-columns:25px 1fr 70px; padding:11px; } .map-expand{ padding-left:35px; } .detail-row{ grid-template-columns:1fr 75px; } .detail-row .hide-xs{ display:none; } } \
+  
+.live-card{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;margin:0 0 18px;padding:18px 20px;border:1px solid var(--border);border-radius:16px;background:linear-gradient(135deg,rgba(50,213,131,.08),rgba(77,163,255,.07)),var(--panel);box-shadow:var(--shadow)}
+.live-card h2{margin:0 0 6px;font-size:18px}.live-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}.live-status{display:inline-flex;align-items:center;gap:8px;margin-bottom:8px;font-weight:700}.live-dot{width:9px;height:9px;border-radius:50%;background:var(--muted2);box-shadow:0 0 0 4px rgba(142,164,189,.08)}.live-dot.on{background:var(--green);box-shadow:0 0 0 4px rgba(50,213,131,.12)}.live-actions{display:flex;gap:8px;flex-wrap:wrap}.live-actions .btn{white-space:nowrap}
+@media(max-width:700px){.live-card{grid-template-columns:1fr}.live-actions{justify-content:flex-start}}
+</style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+<div class="brand">
+
+  <div class="logo">D</div>
+
+  <div>
+    <h1>Deeproq Analyzer</h1>
+
+    <div class="brand-sub">
+      HTTP Archive telemetry waste intelligence
+      · local browser analysis
+      · no upload required
+    </div>
+  </div>
+
+</div>
+
+<div class="top-actions">
+
+  <button
+    id="resetBtn"
+    class="btn"
+    type="button">
+    Reset
+  </button>
+
+  <button
+    id="exportBtn"
+    class="btn primary"
+    type="button">
+    Export Waste Report
+  </button>
+
+</div>
+
+    </header>
+
+    
+<section class="live-card" id="liveCard" aria-label="Deeproq live capture">
+  <div>
+    <div class="live-status"><span id="liveDot" class="live-dot"></span><span id="liveTitle">Live Capture — Extension not connected</span></div>
+    <p id="liveText">Install the Deeproq browser extension to analyze browser traffic automatically. No HAR upload is required. You can still upload a HAR below at any time.</p>
+  </div>
+  <div class="live-actions">
+    <button id="liveOpenBtn" class="btn" type="button">Open Live Analyzer</button>
+    <button id="liveClearBtn" class="btn" type="button">Clear Live Data</button>
+  </div>
+</section>
+
+<section id="dropzone" class="dropzone" aria-label="HAR file upload">
+<input
+  id="fileInput"
+  type="file"
+  accept=".har,application/json">
+
+<div>
+
+  <div class="upload-icon">⇧</div>
+
+  <div class="upload-title">
+    Drop an HTTP Archive (.har) here
+  </div>
+
+  <div class="upload-sub">
+    Chrome DevTools · Firefox · Edge · Charles · Fiddler
+    exports supported
+  </div>
+
+</div>
+
+    </section>
+
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+
+    <section id="controls" class="controls">
+<div class="control">
+  <label>Monthly multiplier</label>
+  <input
+    id="monthlyMultiplier"
+    type="number"
+    min="0.01"
+    step="1"
+    value="30">
+</div>
+
+<div class="control">
+  <label>Metadata bloat threshold</label>
+  <input
+    id="metadataThreshold"
+    type="number"
+    min="0"
+    max="100"
+    step="1"
+    value="20">
+</div>
+
+<div class="control">
+  <label>Repetitive metadata threshold</label>
+  <input
+    id="repeatThreshold"
+    type="number"
+    min="0"
+    max="100"
+    step="1"
+    value="20">
+</div>
+
+<div class="control">
+  <label>Waste map filter</label>
+  <input
+    id="mapSearch"
+    class="search"
+    placeholder="service, sidecar, header, endpoint..."
+    type="search">
+</div>
+
+    </section>
+
+    <main id="dashboard" class="dashboard">
+<!-- =================================================
+     HERO
+================================================== -->
+
+<section class="metrics">
+
+  <div class="metric primary">
+
+    <div class="metric-label">
+      Estimated Addressable Waste / Month
+    </div>
+
+    <div
+      id="totalWasteCost"
+      class="metric-value">
+      $0
+    </div>
+
+    <div
+      id="totalWasteDetail"
+      class="metric-detail">
+      Load a HAR to begin.
+    </div>
+
+  </div>
+
+
+  <div class="metric">
+
+    <div class="metric-label">
+      Waste of Traffic
+    </div>
+
+    <div
+      id="wastePercent"
+      class="metric-value">
+      0%
+    </div>
+
+    <div
+      id="wastePercentDetail"
+      class="metric-detail">
+    </div>
+
+  </div>
+
+
+  <div class="metric">
+
+    <div class="metric-label">
+      Metadata Bloat
+    </div>
+
+    <div
+      id="metadataPercent"
+      class="metric-value">
+      0%
+    </div>
+
+    <div
+      id="metadataDetail"
+      class="metric-detail">
+    </div>
+
+  </div>
+
+
+  <div class="metric">
+
+    <div class="metric-label">
+      Repetitive Metadata
+    </div>
+
+    <div
+      id="repeatPercent"
+      class="metric-value">
+      0%
+    </div>
+
+    <div
+      id="repeatDetail"
+      class="metric-detail">
+    </div>
+
+  </div>
+
+
+  <div class="metric">
+
+    <div class="metric-label">
+      Duplicate Payload
+    </div>
+
+    <div
+      id="duplicateBytes"
+      class="metric-value">
+      0 B
+    </div>
+
+    <div
+      id="duplicateDetail"
+      class="metric-detail">
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =================================================
+     WASTE MAP
+================================================== -->
+
+<section class="panel waste-map">
+
+  <div class="panel-head">
+
+    <div>
+      <h2 class="panel-title">
+        Telemetry Waste Map
+      </h2>
+
+      <p class="panel-subtitle">
+        Service → likely sidecar/proxy → header →
+        endpoint → pattern → cost
+      </p>
+    </div>
+
+    <div id="mapSummary"></div>
+
+  </div>
+
+
+  <div
+    id="mapList"
+    class="map-list">
+
+    <div class="empty">
+      Load a HAR to build the waste map.
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =================================================
+     TOP OFFENDERS + TRAFFIC
+================================================== -->
+
+<section class="grid2">
+
+
+  <div class="panel">
+
+    <div class="panel-head">
+
+      <div>
+        <h2 class="panel-title">
+          Biggest Waste Sources
+        </h2>
+
+        <p class="panel-subtitle">
+          Ranked by addressable waste
+        </p>
+      </div>
+
+    </div>
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th class="num">Waste</th>
+            <th class="num">Traffic %</th>
+            <th class="num">Monthly</th>
+            <th class="num">Cost</th>
+          </tr>
+        </thead>
+
+        <tbody id="topSources"></tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+  <div class="panel">
+
+    <div class="panel-head">
+
+      <div>
+        <h2 class="panel-title">
+          Traffic Composition
+        </h2>
+
+        <p class="panel-subtitle">
+          Where captured bytes are going
+        </p>
+      </div>
+
+    </div>
+
+    <div class="panel-body">
+
+      <div class="bar-row">
+
+        <div class="bar-label">
+          <strong>Payload</strong>
+          <span id="payloadBarText">0 B</span>
+        </div>
+
+        <div class="bar-track">
+          <div
+            id="payloadBar"
+            class="bar-fill bar-blue">
+          </div>
+        </div>
+
+      </div>
+
+
+      <div class="bar-row">
+
+        <div class="bar-label">
+          <strong>Metadata / headers</strong>
+          <span id="metadataBarText">0 B</span>
+        </div>
+
+        <div class="bar-track">
+          <div
+            id="metadataBar"
+            class="bar-fill bar-orange">
+          </div>
+        </div>
+
+      </div>
+
+
+      <div class="bar-row">
+
+        <div class="bar-label">
+          <strong>Repetitive metadata</strong>
+          <span id="repeatBarText">0 B</span>
+        </div>
+
+        <div class="bar-track">
+          <div
+            id="repeatBar"
+            class="bar-fill bar-purple">
+          </div>
+        </div>
+
+      </div>
+
+
+      <div class="bar-row">
+
+        <div class="bar-label">
+          <strong>Duplicate payload</strong>
+          <span id="duplicateBarText">0 B</span>
+        </div>
+
+        <div class="bar-track">
+          <div
+            id="duplicateBar"
+            class="bar-fill bar-purple">
+          </div>
+        </div>
+
+      </div>
+
+
+      <div class="bar-row">
+
+        <div class="bar-label">
+          <strong>Addressable waste</strong>
+          <span id="wasteBarText">0 B</span>
+        </div>
+
+        <div class="bar-track">
+          <div
+            id="wasteBar"
+            class="bar-fill bar-red">
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =================================================
+     HEADER / METADATA LEADERS
+================================================== -->
+
+<section class="panel">
+
+  <div class="panel-head">
+
+    <div>
+      <h2 class="panel-title">
+        Metadata Waste Leaders
+      </h2>
+
+      <p class="panel-subtitle">
+        Individual header fields producing the most
+        GB/TB
+      </p>
+    </div>
+
+    <div id="headerCount"></div>
+
+  </div>
+
+
+  <div class="table-wrap">
+
+    <table>
+
+      <thead>
+
+        <tr>
+
+          <th>Header</th>
+          <th>Likely Owner</th>
+          <th>Top Service</th>
+          <th class="num">Occurrences</th>
+          <th class="num">Bytes</th>
+          <th class="num">Monthly</th>
+          <th class="num">Repetition</th>
+          <th>Why / Classification</th>
+
+        </tr>
+
+      </thead>
+
+      <tbody id="headerLeaders"></tbody>
+
+    </table>
+
+  </div>
+
+</section>
+
+
+<br>
+
+
+<!-- =================================================
+     PATTERN LEADERS
+================================================== -->
+
+<section class="grid2">
+
+
+  <div class="panel">
+
+    <div class="panel-head">
+
+      <div>
+        <h2 class="panel-title">
+          Repetitive Metadata Patterns
+        </h2>
+
+        <p class="panel-subtitle">
+          Same metadata values appearing again and again
+        </p>
+      </div>
+
+    </div>
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Pattern</th>
+            <th>Owner</th>
+            <th class="num">Occurrences</th>
+            <th class="num">Monthly</th>
+            <th class="num">Waste</th>
+            <th>Why</th>
+          </tr>
+
+        </thead>
+
+        <tbody id="metadataPatterns"></tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+  <div class="panel">
+
+    <div class="panel-head">
+
+      <div>
+        <h2 class="panel-title">
+          Duplicate Payload Patterns
+        </h2>
+
+        <p class="panel-subtitle">
+          Repeated response bodies and status messages
+        </p>
+      </div>
+
+    </div>
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Endpoint</th>
+            <th class="num">Occurrences</th>
+            <th class="num">Payload</th>
+            <th class="num">Monthly Waste</th>
+            <th>Likely Cause</th>
+          </tr>
+
+        </thead>
+
+        <tbody id="payloadPatterns"></tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<br>
+
+
+<!-- =================================================
+     VENDOR MODEL
+================================================== -->
+
+<section class="panel">
+
+  <div class="panel-head">
+
+    <div>
+      <h2 class="panel-title">
+        Cost Model
+      </h2>
+
+      <p class="panel-subtitle">
+        Select a benchmark model. All rates are editable
+        in the source.
+      </p>
+    </div>
+
+    <span
+      id="selectedVendor"
+      class="badge blue">
+      AWS
+    </span>
+
+  </div>
+
+
+  <div class="panel-body">
+
+    <div
+      id="vendorGrid"
+      class="vendor-grid">
+    </div>
+
+  </div>
+
+</section>
+
+
+<br>
+
+
+<!-- =================================================
+     FINANCIAL BREAKDOWN + FINDINGS
+================================================== -->
+
+<section class="grid2">
+
+
+  <div class="panel">
+
+    <div class="panel-head">
+
+      <div>
+        <h2 class="panel-title">
+          CFO / CTO Financial Breakdown
+        </h2>
+
+        <p class="panel-subtitle">
+          Estimated addressable waste for selected model
+        </p>
+      </div>
+
+    </div>
+
+
+    <div class="panel-body">
+
+      <div class="finding blue">
+
+        <strong>
+          Monthly waste:
+        </strong>
+
+        <span id="financialWasteBytes">
+          0 B
+        </span>
+
+      </div>
+
+
+      <div class="finding">
+
+        <strong>
+          Egress / transfer:
+        </strong>
+
+        <span id="egressCost">
+          $0
+        </span>
+
+        <span
+          id="egressRate"
+          class="mini">
+        </span>
+
+      </div>
+
+
+      <div class="finding">
+
+        <strong>
+          Routing / ingest:
+        </strong>
+
+        <span id="routingCost">
+          $0
+        </span>
+
+        <span
+          id="routingRate"
+          class="mini">
+        </span>
+
+      </div>
+
+
+      <div class="finding">
+
+        <strong>
+          Indexing / storage equivalent:
+        </strong>
+
+        <span id="indexCost">
+          $0
+        </span>
+
+        <span
+          id="indexRate"
+          class="mini">
+        </span>
+
+      </div>
+
+
+      <div class="finding green">
+
+        <strong>
+          Estimated total:
+        </strong>
+
+        <span id="financialTotal">
+          $0
+        </span>
+
+      </div>
+
+
+      <div class="footer">
+        This is an engineering estimation model, not a
+        vendor invoice. Vendor pricing can depend on region,
+        service, retention, tier, contract, indexing,
+        host/event dimensions, and negotiated rates.
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="panel">
+
+    <div class="panel-head">
+
+      <div>
+        <h2 class="panel-title">
+          Executive Findings
+        </h2>
+
+        <p class="panel-subtitle">
+          What engineering should investigate first
+        </p>
+      </div>
+
+    </div>
+
+    <div
+      id="findings"
+      class="panel-body">
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =================================================
+     FULL ENDPOINT DETAIL
+================================================== -->
+
+<br>
+
+<section class="panel">
+
+  <div class="panel-head">
+
+    <div>
+
+      <h2 class="panel-title">
+        Microservice / Endpoint Waste
+      </h2>
+
+      <p class="panel-subtitle">
+        Complete ranked list for engineering remediation
+      </p>
+
+    </div>
+
+    <span
+      id="endpointCount"
+      class="badge gray">
+      0
+    </span>
+
+  </div>
+
+
+  <div class="table-wrap">
+
+    <table>
+
+      <thead>
+
+        <tr>
+
+          <th>Microservice</th>
+          <th>Likely Sidecar</th>
+          <th>Endpoint</th>
+          <th class="num">Requests</th>
+          <th class="num">Traffic</th>
+          <th class="num">Metadata</th>
+          <th class="num">Repeat Meta</th>
+          <th class="num">Duplicate</th>
+          <th class="num">Waste</th>
+          <th class="num">$/mo</th>
+
+        </tr>
+
+      </thead>
+
+      <tbody id="endpointTable"></tbody>
+
+    </table>
+
+  </div>
+
+</section>
+
+
+<div class="footer">
+
+  <strong>Attribution note:</strong>
+  HAR files provide request/response evidence, but they
+  generally do not contain authoritative ownership metadata
+  saying which Kubernetes sidecar generated a header.
+  Deeproq therefore uses deterministic heuristics based on
+  hostnames, header names, proxy signatures, paths, and
+  infrastructure conventions and labels those results
+  as <strong>Likely</strong> rather than proven attribution.
+
+  <br><br>
+
+  All analysis runs locally in your browser. The HAR is not
+  transmitted to a server by this application.
+
+</div>
+
+    </main>
+  </div>
+
+  <script>
+ "use strict"; /* ================================================================ DEEPRQ ANALYZER ================================================================ Single-file HAR telemetry waste analyzer. Core model: Service | +-- likely sidecar / proxy | +-- header | +-- endpoint | +-- repetition / duplication | +-- GB/TB | +-- $ | +-- why / recommendation IMPORTANT: A HAR cannot authoritatively identify a Kubernetes sidecar. Sidecar attribution is therefore heuristic. ================================================================ */ /* ============================================================== CONFIGURATION ============================================================== */ const VENDORS = { aws: { name: "AWS", egress: 0.09, routing: 0.27, indexing: 1.00, description: "Editable AWS benchmark", note: "Internet egress example benchmark." }, splunk: { name: "Splunk", egress: 0.09, routing: 0.75, indexing: 1.25, description: "Editable Splunk ingest benchmark", note: "Splunk pricing depends on pricing model and contract." }, cribl: { name: "Cribl", egress: 0.09, routing: 0.32, indexing: 0.00, description: "Editable Cribl routing benchmark", note: "Routing/worker benchmark." }, newrelic: { name: "New Relic", egress: 0.09, routing: 0.40, indexing: 0.00, description: "Editable New Relic data benchmark", note: "Data pricing varies by product and plan." }, datadog: { name: "Datadog", egress: 0.09, routing: 0.10, indexing: 0.10, description: "Editable Datadog log benchmark", note: "Ingestion/index assumptions are configurable." }, gcp: { name: "Google Cloud", egress: 0.085, routing: 0.00, indexing: 0.50, description: "Editable Google Cloud benchmark", note: "Cloud Logging/network assumptions are configurable." }, redhat: { name: "Red Hat", egress: 0.09, routing: 0.15, indexing: 0.00, description: "Editable OpenShift-equivalent model", note: "Red Hat infrastructure pricing is not inherently $/GB." } }; /* ================================================================ APPLICATION STATE ================================================================ */ const state = { analysis: null, vendor: "aws", expandedMap: new Set(), mapSearch: "" }; /* ================================================================ DOM SHORTCUT ================================================================ */ const $ = id => document.getElementById(id); /* ================================================================ FILE INPUT ================================================================ */ const dropzone = $("dropzone"); const fileInput = $("fileInput"); ["dragenter", "dragover"].forEach(type => { dropzone.addEventListener(type, event => { event.preventDefault(); dropzone.classList.add("dragover"); }); }); ["dragleave", "drop"].forEach(type => { dropzone.addEventListener(type, event => { event.preventDefault(); dropzone.classList.remove("dragover"); }); }); dropzone.addEventListener("drop", event => { const file = event.dataTransfer.files && event.dataTransfer.files[0]; if(file){ processFile(file); } }); fileInput.addEventListener("change", event => { const file = event.target.files && event.target.files[0]; if(file){ processFile(file); } }); /* ================================================================ CONTROLS ================================================================ */ [ "monthlyMultiplier", "metadataThreshold", "repeatThreshold" ].forEach(id => { $(id).addEventListener("input", () => { if(state.analysis){ renderAll(); } }); }); $("mapSearch").addEventListener("input", event => { state.mapSearch = event.target.value .trim() .toLowerCase(); renderWasteMap(); }); $("resetBtn").addEventListener("click", () => { state.analysis = null; state.expandedMap.clear(); fileInput.value = ""; $("dashboard").classList.remove("visible"); $("controls").classList.remove("visible"); $("status").classList.remove("visible"); $("status").textContent = ""; $("liveDot").classList.remove("on"); $("liveTitle").textContent = "Live Capture — Waiting"; $("liveText").textContent = "Live data cleared. Keep browsing and Deeproq will repopulate the analyzer."; if(typeof chrome !== "undefined" && chrome.runtime?.sendMessage) chrome.runtime.sendMessage({type:"CLEAR_LIVE_HAR"}); }); $("exportBtn").addEventListener("click", () => { if(!state.analysis){ alert("Load a HAR file first."); return; } exportReport(); }); /* ================================================================ LIVE EXTENSION BRIDGE ================================================================ */
+function processHARObject(har, sourceName){
+  if(!har || !har.log || !Array.isArray(har.log.entries)){ throw new Error("The live capture does not contain a valid HAR-like entries array."); }
+  showStatus(`Analyzing ${har.log.entries.length.toLocaleString()} live network entries...`);
+  const analysis = analyzeHAR(har);
+  analysis.fileName = sourceName || "Deeproq Live Capture";
+  state.analysis = analysis;
+  $("controls").classList.add("visible");
+  $("dashboard").classList.add("visible");
+  renderAll();
+  showStatus(`Analyzed ${analysis.entries.length.toLocaleString()} usable live entries.`);
+  $("liveDot").classList.add("on");
+  $("liveTitle").textContent = "Live Capture — ACTIVE";
+  $("liveText").textContent = `Deeproq is analyzing browser traffic locally. ${analysis.entries.length.toLocaleString()} usable entries are currently in the live snapshot. HAR upload remains available below.`;
+}
+function receiveLiveHAR(har){ try{ processHARObject(har, "Deeproq Live Capture"); }catch(error){ console.error(error); showStatus("Live capture error: " + error.message); } }
+window.addEventListener("message", event => {
+  if(event.source !== window) return;
+  if(event.data?.source === "DEEPRQ_EXTENSION" && event.data?.type === "DEEPROQ_LIVE_HAR"){ receiveLiveHAR(event.data.har); }
+});
+if(typeof chrome !== "undefined" && chrome.runtime?.onMessage){
+  chrome.runtime.onMessage.addListener(msg => { if(msg?.type === "DEEPROQ_LIVE_HAR") receiveLiveHAR(msg.har); });
+  chrome.runtime.sendMessage({type:"GET_LIVE_HAR"}, har => { if(!chrome.runtime.lastError && har?.log?.entries?.length) receiveLiveHAR(har); });
+}
+$("liveOpenBtn").addEventListener("click", () => {
+  if(typeof chrome !== "undefined" && chrome.runtime?.getURL){ window.location.href = chrome.runtime.getURL("analyzer.html?live=1"); return; }
+  alert("Install the Deeproq browser extension to use Live Capture.");
+});
+$("liveClearBtn").addEventListener("click", () => {
+  if(typeof chrome !== "undefined" && chrome.runtime?.sendMessage){ chrome.runtime.sendMessage({type:"CLEAR_LIVE_HAR"}); }
+  state.analysis = null; state.expandedMap.clear(); $("dashboard").classList.remove("visible"); $("controls").classList.remove("visible"); $("liveDot").classList.remove("on"); $("liveTitle").textContent="Live Capture — Waiting"; $("liveText").textContent="Live data cleared. Keep browsing and Deeproq will repopulate the analyzer.";
+});
+
+/* ================================================================ PROCESS FILE ================================================================ */ async async function processFile(file){ const name = String(file.name || "").toLowerCase(); if(!name.endsWith(".har") && file.type !== "application/json"){ showStatus("Please choose a .har or JSON HAR file."); return; } try{ showStatus(`Reading ${file.name}...`); const text = await file.text(); const har = JSON.parse(text); if(!har.log || !Array.isArray(har.log.entries)){ throw new Error("The file does not contain a valid HAR log.entries array."); } await new Promise(resolve => setTimeout(resolve, 20)); processHARObject(har, file.name); }catch(error){ console.error(error); showStatus("HAR parsing failed: " + error.message); $("dashboard").classList.remove("visible"); } }
+/* ================================================================ MAIN HAR ANALYZER ================================================================ */ function analyzeHAR(har){ const entries = []; /* Header-level aggregates. Every individual header gets its own record. Example: x-envoy-attempt-count x-request-id traceparent cookie are NOT collapsed into generic "metadata." */ const headers = new Map(); /* Repetitive metadata patterns. Keyed by: header name + normalized value */ const metadataPatterns = new Map(); /* Duplicate payload patterns. */ const payloadPatterns = new Map(); /* Endpoint aggregation. */ const endpoints = new Map(); let totalPayload = 0; let totalMetadata = 0; let totalHeaderBytes = 0; let totalStructuralMetadata = 0; /* -------------------------------------------------------------- ENTRIES -------------------------------------------------------------- */ har.log.entries.forEach((raw, index) => { if( !raw || !raw.request || !raw.response ){ return; } const entry = normalizeEntry( raw, index ); entries.push(entry); totalPayload += entry.payloadSize; totalMetadata += entry.metadataSize; totalHeaderBytes += entry.headerBytes; totalStructuralMetadata += entry.structuralMetadata; /* ------------------------------------------------------------ INDIVIDUAL HEADERS ------------------------------------------------------------ */ entry.headers.forEach(header => { const key = header.name.toLowerCase(); if(!headers.has(key)){ headers.set(key, { name: header.name, occurrences: 0, bytes: 0, services: new Map(), owners: new Map(), endpoints: new Map(), values: new Map() }); } const aggregate = headers.get(key); aggregate.occurrences++; aggregate.bytes += header.bytes; incrementMap( aggregate.services, entry.service, header.bytes ); incrementMap( aggregate.owners, entry.likelyOwner, header.bytes ); incrementMap( aggregate.endpoints, entry.endpoint, header.bytes ); const normalizedValue = normalizeMetadataValue( header.value ); if( normalizedValue && normalizedValue.length < 1000 ){ if(!aggregate.values.has( normalizedValue )){ aggregate.values.set( normalizedValue, { occurrences: 0, bytes: 0, service: entry.service, owner: entry.likelyOwner, endpoint: entry.endpoint } ); } const valueRecord = aggregate.values.get( normalizedValue ); valueRecord.occurrences++; valueRecord.bytes += header.bytes; /* Only store a bounded number of values per header to keep large HARs usable. */ if( aggregate.values.size > 200 ){ const first = aggregate.values.keys().next().value; aggregate.values.delete(first); } } /* Global repetitive pattern. */ const patternKey = key + "::" + normalizedValue; if( normalizedValue && normalizedValue.length < 1000 ){ if( !metadataPatterns.has( patternKey ) ){ metadataPatterns.set( patternKey, { header: header.name, value: normalizedValue, occurrences: 0, bytes: 0, service: entry.service, owner: entry.likelyOwner, endpoint: entry.endpoint } ); } const pattern = metadataPatterns.get( patternKey ); pattern.occurrences++; pattern.bytes += header.bytes; } }); /* ------------------------------------------------------------ PAYLOAD PATTERNS ------------------------------------------------------------ */ if(entry.payloadFingerprint){ if( !payloadPatterns.has( entry.payloadFingerprint ) ){ payloadPatterns.set( entry.payloadFingerprint, { occurrences: 0, bytes: 0, endpoint: entry.endpoint, service: entry.service, owner: entry.likelyOwner, sample: entry.payloadSample } ); } const pattern = payloadPatterns.get( entry.payloadFingerprint ); pattern.occurrences++; pattern.bytes += entry.payloadSize; } /* ------------------------------------------------------------ ENDPOINT AGGREGATION ------------------------------------------------------------ */ const endpointKey = entry.service + "::" + entry.endpoint; if( !endpoints.has(endpointKey) ){ endpoints.set( endpointKey, { service: entry.service, sidecar: entry.likelyOwner, endpoint: entry.endpoint, requests: 0, traffic: 0, payload: 0, metadata: 0, repetitiveMetadata: 0, duplicatePayload: 0, headers: new Map() } ); } const endpoint = endpoints.get(endpointKey); endpoint.requests++; endpoint.traffic += entry.totalBytes; endpoint.payload += entry.payloadSize; endpoint.metadata += entry.metadataSize; /* Header-level endpoint attribution. */ entry.headers.forEach(header => { const key = header.name.toLowerCase(); if(!endpoint.headers.has(key)){ endpoint.headers.set( key, { name: header.name, bytes: 0, occurrences: 0 } ); } const h = endpoint.headers.get(key); h.bytes += header.bytes; h.occurrences++; }); }); /* -------------------------------------------------------------- CALCULATE REPETITIVE METADATA -------------------------------------------------------------- */ let repetitiveMetadataBytes = 0; for( const pattern of metadataPatterns.values() ){ /* Only repeated values count as repetitive. The first occurrence is treated as useful baseline. Everything after that is candidate repetition. */ if(pattern.occurrences > 1){ const firstBytes = pattern.bytes / pattern.occurrences; pattern.waste = Math.max( 0, pattern.bytes - firstBytes ); repetitiveMetadataBytes += pattern.waste; }else{ pattern.waste = 0; } } /* -------------------------------------------------------------- DUPLICATE PAYLOADS -------------------------------------------------------------- */ let duplicatePayloadBytes = 0; for( const pattern of payloadPatterns.values() ){ if(pattern.occurrences > 1){ const firstBytes = pattern.bytes / pattern.occurrences; pattern.waste = Math.max( 0, pattern.bytes - firstBytes ); duplicatePayloadBytes += pattern.waste; }else{ pattern.waste = 0; } } /* -------------------------------------------------------------- METADATA BLOAT -------------------------------------------------------------- */ const metadataThreshold = getNumber( "metadataThreshold", 20 ) / 100; const totalTraffic = totalPayload + totalMetadata; const metadataShare = totalTraffic ? totalMetadata / totalTraffic : 0; /* If metadata is >20% of traffic, count the amount above the threshold as addressable. */ let metadataBloatBytes = 0; if( metadataShare > metadataThreshold ){ metadataBloatBytes = Math.max( 0, totalMetadata - ( totalTraffic * metadataThreshold ) ); } /* -------------------------------------------------------------- REPETITIVE METADATA THRESHOLD -------------------------------------------------------------- */ const repeatThreshold = getNumber( "repeatThreshold", 20 ) / 100; const repetitiveMetadataShare = totalMetadata ? repetitiveMetadataBytes / totalMetadata : 0; let repetitiveMetadataWaste = 0; if( repetitiveMetadataShare > repeatThreshold ){ repetitiveMetadataWaste = Math.max( 0, repetitiveMetadataBytes - ( totalMetadata * repeatThreshold ) ); } /* -------------------------------------------------------------- TOTAL WASTE -------------------------------------------------------------- Avoid double counting repetitive metadata. */ const effectiveRepetitiveMetadataWaste = Math.min( repetitiveMetadataWaste, metadataBloatBytes ); const totalWaste = metadataBloatBytes + effectiveRepetitiveMetadataWaste + duplicatePayloadBytes; /* -------------------------------------------------------------- ENDPOINT WASTE -------------------------------------------------------------- */ for( const endpoint of endpoints.values() ){ const endpointMetadataShare = endpoint.traffic ? endpoint.metadata / endpoint.traffic : 0; const endpointRepeatBytes = estimateEndpointRepeatBytes( endpoint, metadataPatterns ); endpoint.repetitiveMetadata = endpointRepeatBytes; const endpointRepeatShare = endpoint.metadata ? endpointRepeatBytes / endpoint.metadata : 0; endpoint.metadataWaste = endpointMetadataShare > metadataThreshold ? Math.max( 0, endpoint.metadata - ( endpoint.traffic * metadataThreshold ) ) : 0; endpoint.repeatWaste = endpointRepeatShare > repeatThreshold ? Math.max( 0, endpointRepeatBytes - ( endpoint.metadata * repeatThreshold ) ) : 0; endpoint.duplicatePayload = estimateEndpointDuplicateBytes( endpoint, payloadPatterns ); endpoint.waste = endpoint.metadataWaste + Math.min( endpoint.repeatWaste, endpoint.metadataWaste ) + endpoint.duplicatePayload; } /* -------------------------------------------------------------- SOURCE MAP -------------------------------------------------------------- */ const sourceMap = buildSourceMap( entries, endpoints, headers, metadataPatterns, payloadPatterns ); return { fileName: "", entries, totalPayload, totalMetadata, totalHeaderBytes, totalStructuralMetadata, totalTraffic, metadataShare, repetitiveMetadataBytes, repetitiveMetadataShare, duplicatePayloadBytes, metadataBloatBytes, repetitiveMetadataWaste: effectiveRepetitiveMetadataWaste, totalWaste, headers: [...headers.values()] .sort( (a,b) => b.bytes - a.bytes ), metadataPatterns: [...metadataPatterns.values()] .sort( (a,b) => b.waste - a.waste ), payloadPatterns: [...payloadPatterns.values()] .sort( (a,b) => b.waste - a.waste ), endpoints: [...endpoints.values()] .sort( (a,b) => b.waste - a.waste ), sourceMap }; } /* ================================================================ NORMALIZE ENTRY ================================================================ */ function normalizeEntry(raw,index){ const request = raw.request || {}; const response = raw.response || {}; const url = request.url || "unknown://unknown/"; const parsed = safeURL(url); const service = inferService( parsed, raw ); const likelyOwner = inferSidecar( request, response, parsed, raw ); const endpoint = buildEndpoint( parsed, request.method || "GET" ); const requestHeaderObjects = normalizeHeaders( request.headers, "request" ); const responseHeaderObjects = normalizeHeaders( response.headers, "response" ); const headers = [ ...requestHeaderObjects, ...responseHeaderObjects ]; const headerBytes = headers.reduce( (sum,h) => sum + h.bytes, 0 ); const structuralMetadata = estimateStructuralMetadata( request, response, raw ); const metadataSize = headerBytes + structuralMetadata; const payloadSize = getPayloadSize( response ); const payloadText = extractPayload( response ); const normalizedPayload = normalizePayload( payloadText ); const payloadFingerprint = normalizedPayload ? hash(normalizedPayload) : ""; return { index, service, likelyOwner, endpoint, url, method: request.method || "GET", payloadSize, metadataSize, headerBytes, structuralMetadata, totalBytes: payloadSize + metadataSize, headers, payloadFingerprint, payloadSample: normalizedPayload ? normalizedPayload.slice(0,220) : "" }; } /* ================================================================ HEADER NORMALIZATION ================================================================ */ function normalizeHeaders( headers, direction ){ if(!Array.isArray(headers)) return []; return headers .filter(Boolean) .map(header => { const name = String( header.name || "" ).trim(); const value = String( header.value || "" ); const bytes = byteLength( name + ": " + value + "\r\n" ); return { name, value, bytes, direction }; }); } /* ================================================================ SERVICE INFERENCE ================================================================ HARs usually don't contain a canonical Kubernetes service name. We infer it from hostnames. Examples: payments.prod.internal payments-service.default.svc.cluster.local api.payments.example.com ================================================================ */ function inferService( parsed, raw ){ const hostname = String( parsed.hostname || "" ).toLowerCase(); if(!hostname) return "unknown"; const hostParts = hostname.split("."); let candidate = hostParts[0] || "unknown"; candidate = candidate .replace( /^(api|www|web|gateway|edge)-/i, "" ) .replace( /-(prod|production|staging|stage|dev|development)$/i, "" ); candidate = candidate .replace( /-service$/i, "" ); return candidate || "unknown"; } /* ================================================================ SIDECAR / INFRASTRUCTURE INFERENCE ================================================================ This is intentionally conservative. ================================================================ */ function inferSidecar( request, response, parsed, raw ){ const allHeaders = [ ...(request.headers || []), ...(response.headers || []) ] .filter(Boolean) .map(h => ({ name: String(h.name || "") .toLowerCase(), value: String(h.value || "") .toLowerCase() })); const headerNames = allHeaders .map(h => h.name) .join(" "); const headerText = allHeaders .map( h => h.name + ":" + h.value ) .join(" "); const host = String( parsed.hostname || "" ).toLowerCase(); /* Istio / Envoy signatures. */ if( /x-envoy-|x-istio-|x-forwarded-|x-b3-|b3$/.test( headerNames ) || /envoy|istio/.test( headerText ) || /istio|envoy/.test( host ) ){ return "Likely: Istio / Envoy"; } /* Linkerd. */ if( /l5d-|server-timing.*l5d|linkerd/.test( headerNames + headerText + host ) ){ return "Likely: Linkerd"; } /* NGINX ingress / proxy. */ if( /nginx/.test( headerText ) || /nginx/.test( host ) ){ return "Likely: NGINX"; } /* HAProxy. */ if( /haproxy/.test( headerText ) ){ return "Likely: HAProxy"; } /* AWS / cloud proxy signatures. */ if( /x-amzn-|x-amz-|via/.test( headerNames ) ){ return "Likely: AWS edge/proxy"; } /* Kubernetes-ish hostname. */ if( /\.svc(\.|$)/.test( host ) ){ return "Likely: Kubernetes network path"; } return "Likely: Application"; } /* ================================================================ ENDPOINT NORMALIZATION ================================================================ */ function buildEndpoint( parsed, method ){ let path = parsed.pathname || "/"; /* Collapse IDs so: /users/123 /users/456 become: /users/:id */ path = path .replace( /\/\d+(?=\/|$)/g, "/:id" ) .replace( /\/[0-9a-f]{8}-[0-9a-f-]{27,}(?=\/|$)/gi, "/:uuid" ); /* Avoid putting query strings into endpoint grouping. */ return ( method.toUpperCase() + " " + ( parsed.hostname || "unknown" ) + path ); } /* ================================================================ PAYLOAD SIZE ================================================================ */ function getPayloadSize(response){ const content = response.content || {}; if( Number.isFinite( content.size ) && content.size >= 0 ){ return content.size; } if( Number.isFinite( response.bodySize ) && response.bodySize >= 0 ){ return response.bodySize; } if( typeof content.text === "string" ){ if( content.encoding === "base64" ){ return Math.floor( content.text.length * .75 ); } return byteLength( content.text ); } return 0; } /* ================================================================ PAYLOAD EXTRACTION ================================================================ */ function extractPayload(response){ const content = response.content || {}; if( typeof content.text !== "string" ){ return ""; } if(!content.text.trim()) return ""; return content.text; } /* ================================================================ PAYLOAD NORMALIZATION ================================================================ Normalizes dynamic IDs/timestamps so repeated status messages can still be recognized as the same logical payload. ================================================================ */ function normalizePayload(value){ if(!value) return ""; let result = String(value) .trim(); /* JSON normalization. */ if( result.startsWith("{") || result.startsWith("[") ){ try{ result = JSON.stringify( JSON.parse(result) ); }catch(_){} } /* Dynamic timestamps. */ result = result.replace( /\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z\b/g, "" ); /* UUIDs. */ result = result.replace( /\b[0-9a-f]{8}-[0-9a-f-]{27,}\b/gi, "" ); /* Long numeric IDs. */ result = result.replace( /\b\d{8,}\b/g, "" ); /* Whitespace. */ result = result.replace( /\s+/g, " " ); return result; } /* ================================================================ METADATA NORMALIZATION ================================================================ */ function normalizeMetadataValue(value){ if(value == null) return ""; return String(value) .replace( /\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z\b/g, "" ) .replace( /\b[0-9a-f]{8}-[0-9a-f-]{27,}\b/gi, "" ) .replace( /\b\d{8,}\b/g, "" ) .replace( /\s+/g, " " ) .trim(); } /* ================================================================ STRUCTURAL METADATA ================================================================ */ function estimateStructuralMetadata( request, response, raw ){ let bytes = 0; const fields = [ request.method, request.httpVersion, request.queryString, request.cookies, response.status, response.statusText, response.httpVersion, response.cookies, response.redirectURL, raw.serverIPAddress, raw.connection, raw.comment, raw.timings ]; fields.forEach(value => { if(value == null) return; try{ bytes += byteLength( JSON.stringify(value) ); }catch(_){ bytes += byteLength( String(value) ); } }); return bytes; } /* ================================================================ ENDPOINT REPEAT ESTIMATION ================================================================ */ function estimateEndpointRepeatBytes( endpoint, metadataPatterns ){ let total = 0; for( const pattern of metadataPatterns.values() ){ if( pattern.endpoint === endpoint.endpoint ){ total += pattern.waste; } } return total; } /* ================================================================ ENDPOINT DUPLICATE ESTIMATION ================================================================ */ function estimateEndpointDuplicateBytes( endpoint, payloadPatterns ){ let total = 0; for( const pattern of payloadPatterns.values() ){ if( pattern.endpoint === endpoint.endpoint ){ total += pattern.waste; } } return total; } /* ================================================================ SOURCE MAP ================================================================ Builds: service -> sidecar -> headers -> endpoints ================================================================ */ function buildSourceMap( entries, endpoints, headers, metadataPatterns, payloadPatterns ){ const services = new Map(); /* -------------------------------------------------------------- SERVICES -------------------------------------------------------------- */ for( const endpoint of endpoints.values() ){ const service = endpoint.service; if(!services.has(service)){ services.set( service, { service, traffic: 0, waste: 0, endpoints: new Map(), owners: new Map() } ); } const record = services.get(service); record.traffic += endpoint.traffic; record.waste += endpoint.waste; const owner = endpoint.sidecar; if(!record.owners.has(owner)){ record.owners.set( owner, { owner, traffic: 0, waste: 0, endpoints: new Map(), headers: new Map() } ); } const ownerRecord = record.owners.get(owner); ownerRecord.traffic += endpoint.traffic; ownerRecord.waste += endpoint.waste; ownerRecord.endpoints.set( endpoint.endpoint, endpoint ); } /* -------------------------------------------------------------- ATTACH HEADER DETAILS -------------------------------------------------------------- */ for( const header of headers ){ const ownerEntries = [...header.owners.entries()] .sort( (a,b) => b[1] - a[1] ); const owner = ownerEntries[0]?.[0] || "Likely: Unknown"; const serviceEntries = [...header.services.entries()] .sort( (a,b) => b[1] - a[1] ); const service = serviceEntries[0]?.[0] || "unknown"; const serviceRecord = services.get(service); if(!serviceRecord) continue; const ownerRecord = serviceRecord.owners.get( owner ); if(!ownerRecord) continue; ownerRecord.headers.set( header.name.toLowerCase(), { header, owner, service } ); } return [ ...services.values() ] .sort( (a,b) => b.waste - a.waste ); } /* ================================================================ MAP ================================================================ */ function renderWasteMap(){ const list = $("mapList"); if(!state.analysis){ list.innerHTML = `
+
+Load a HAR to build the waste map.
+
+`; return; } const filter = state.mapSearch; const services = state.analysis.sourceMap .filter(service => { if(!filter) return true; const haystack = JSON.stringify(service) .toLowerCase(); return haystack.includes( filter ); }); if(!services.length){ list.innerHTML = `
+
+No waste-map sources match "${escapeHtml(filter)}".
+
+`; return; } list.innerHTML = services .map( renderServiceMapRow ) .join(""); list .querySelectorAll( ".map-main" ) .forEach(element => { element.addEventListener( "click", () => { const key = element.dataset.key; if( state.expandedMap.has(key) ){ state.expandedMap.delete( key ); }else{ state.expandedMap.add( key ); } renderWasteMap(); } ); }); } function renderServiceMapRow( service ){ const key = "service:" + service.service; const open = state.expandedMap.has( key ); const monthly = monthlyScale(); const costRate = selectedCombinedRate(); const monthlyWaste = service.waste * monthly; const monthlyCost = bytesToGB( monthlyWaste ) * costRate; const totalTraffic = state.analysis.totalTraffic || 1; const share = service.waste / totalTraffic * 100; const owners = [...service.owners.values()] .sort( (a,b) => b.waste - a.waste ); const ownerHTML = owners .map( renderOwnerLevel ) .join(""); return `
+
+▶
+
+${escapeHtml( service.service )} ${formatBytes( service.waste )} waste
+
+Microservice / host grouping
+
+${formatBytes( service.traffic )} captured traffic
+
+${formatPercent( share )}% traffic waste
+
+${formatBytes( monthlyWaste )} monthly
+
+${money( monthlyCost )} estimated / month
+
+${ownerHTML || `
+
+No deeper ownership information was inferred for this service.
+
+`}
+
+`; } function renderOwnerLevel( owner ){ const key = "service:" + ownerOwnerService(owner) + "::" + owner.owner; const monthly = monthlyScale(); const rate = selectedCombinedRate(); const monthlyWaste = owner.waste * monthly; const monthlyCost = bytesToGB( monthlyWaste ) * rate; const headers = [...owner.headers.values()] .sort( (a,b) => b.header.bytes - a.header.bytes ) .slice(0,12); const endpointRows = [...owner.endpoints.values()] .sort( (a,b) => b.waste - a.waste ) .slice(0,8) .map( endpoint => renderEndpointDetail( endpoint ) ) .join(""); const headerRows = headers .map( item => renderHeaderDetail( item.header ) ) .join(""); return `
+
+${escapeHtml( owner.owner )} ${formatBytes( owner.waste )} waste · ${formatBytes( monthlyWaste )} / month · ${money( monthlyCost )}
+
+${headerRows ? `
+
+Top metadata fields
+
+Captured
+
+Monthly
+
+Repeat
+
+Classification
+
+${headerRows} ` : ""} ${endpointRows ? `
+
+Top endpoints
+
+Requests
+
+Traffic
+
+Waste
+
+Recommendation
+
+${endpointRows} ` : ""}
+
+`; } /* ================================================================ OWNER SERVICE LOOKUP ================================================================ */ function ownerOwnerService(owner){ /* This is only used to build a stable UI key. The actual source map has already grouped the owner. */ const found = state.analysis.sourceMap .find(service => service.owners.has( owner.owner ) ); return found ? found.service : "unknown"; } /* ================================================================ HEADER DETAIL ================================================================ */ function renderHeaderDetail( wrapper ){ const header = wrapper.header; const monthly = header.bytes * monthlyScale(); const repetition = estimateHeaderRepetition( header ); const owner = topMapKey( header.owners ) || "Likely: Unknown"; const service = topMapKey( header.services ) || "unknown"; const classification = classifyHeader( header.name ); const why = classification.why; return `
+
+${escapeHtml( header.name )}
+
+${escapeHtml( owner )} · ${escapeHtml( service )}
+
+${formatBytes( header.bytes )}
+
+${formatBytes( monthly )}
+
+${formatPercent( repetition )}%
+
+${escapeHtml( why )}
+
+`; } /* ================================================================ ENDPOINT DETAIL ================================================================ */ function renderEndpointDetail( endpoint ){ const monthly = endpoint.waste * monthlyScale(); const cost = bytesToGB( monthly ) * selectedCombinedRate(); return `
+
+${escapeHtml( endpoint.endpoint )}
+
+${endpoint.requests.toLocaleString()} requests
+
+${endpoint.requests.toLocaleString()}
+
+${formatBytes( endpoint.traffic )}
+
+${formatBytes( endpoint.waste )}
+
+${escapeHtml( endpointRecommendation( endpoint ) )} · ${money(cost)}/mo
+
+`; } /* ================================================================ TOP SOURCES ================================================================ */ function renderTopSources(){ const tbody = $("topSources"); const analysis = state.analysis; const total = analysis.totalTraffic || 1; const rate = selectedCombinedRate(); tbody.innerHTML = analysis.sourceMap .slice(0,10) .map(service => { const monthly = service.waste * monthlyScale(); const cost = bytesToGB( monthly ) * rate; const share = service.waste / total * 100; return ` ${escapeHtml( service.service )} Microservice / host group **${formatBytes( service.waste )} **${formatPercent( share )}% ${formatBytes( monthly )} **${money(cost)} **`; }) .join(""); } /* ================================================================ HEADER LEADERS ================================================================ */ function renderHeaderLeaders(){ const tbody = $("headerLeaders"); const headers = state.analysis.headers .slice(0,20); $("headerCount").innerHTML = ` ${state.analysis.headers.length} headers `; tbody.innerHTML = headers .map(header => { const owner = topMapKey( header.owners ) || "Likely: Unknown"; const service = topMapKey( header.services ) || "unknown"; const monthly = header.bytes * monthlyScale(); const repetition = estimateHeaderRepetition( header ); const classification = classifyHeader( header.name ); return ` ${escapeHtml( header.name )} ${escapeHtml( classification.type )} ${escapeHtml( owner )} ${escapeHtml( service )} ${header.occurrences.toLocaleString()} ${formatBytes( header.bytes )} **${formatBytes( monthly )} **${ repetition >= 20 ? ` ${formatPercent( repetition )}% ` : `${formatPercent( repetition )}%` } ${escapeHtml( classification.why )} ${escapeHtml( classification.recommendation )} `; }) .join(""); } /* ================================================================ METADATA PATTERNS ================================================================ */ function renderMetadataPatterns(){ const tbody = $("metadataPatterns"); tbody.innerHTML = state.analysis.metadataPatterns .filter( p => p.occurrences > 1 ) .slice(0,20) .map(pattern => { const monthly = pattern.waste * monthlyScale(); const reason = classifyHeader( pattern.header ); return ` ${escapeHtml( pattern.header )} ${escapeHtml( truncate( pattern.value, 100 ) )} ${escapeHtml( pattern.owner )} ${pattern.occurrences.toLocaleString()} ${formatBytes( monthly )} **${formatBytes( pattern.waste )} **${escapeHtml( reason.why )} `; }) .join(""); if(!tbody.innerHTML){ tbody.innerHTML = ` No repeated metadata patterns detected. `; } } /* ================================================================ PAYLOAD PATTERNS ================================================================ */ function renderPayloadPatterns(){ const tbody = $("payloadPatterns"); tbody.innerHTML = state.analysis.payloadPatterns .filter( p => p.occurrences > 1 ) .slice(0,20) .map(pattern => { const monthly = pattern.waste * monthlyScale(); return ` ${escapeHtml( pattern.endpoint )} ${escapeHtml( pattern.owner )} ${pattern.occurrences.toLocaleString()} ${formatBytes( pattern.bytes )} **${formatBytes( monthly )} **${escapeHtml( inferPayloadReason( pattern.sample, pattern.endpoint ) )} `; }) .join(""); if(!tbody.innerHTML){ tbody.innerHTML = ` No duplicate payload patterns detected. `; } } /* ================================================================ ENDPOINT TABLE ================================================================ */ function renderEndpointTable(){ const tbody = $("endpointTable"); const endpoints = state.analysis.endpoints; $("endpointCount").textContent = endpoints.length.toLocaleString(); tbody.innerHTML = endpoints .map(endpoint => { const monthly = endpoint.waste * monthlyScale(); const cost = bytesToGB( monthly ) * selectedCombinedRate(); return ` ${escapeHtml( endpoint.service )} ${escapeHtml( endpoint.sidecar )} ${escapeHtml( endpoint.endpoint )} ${endpoint.requests.toLocaleString()} ${formatBytes( endpoint.traffic )} ${formatBytes( endpoint.metadata )} ${formatBytes( endpoint.repetitiveMetadata )} ${formatBytes( endpoint.duplicatePayload )} **${formatBytes( endpoint.waste )} ${money( cost )} **`; }) .join(""); } /* ================================================================ TRAFFIC BARS ================================================================ */ function renderTraffic(){ const a = state.analysis; const total = Math.max( a.totalTraffic, 1 ); setBar( "payloadBar", a.totalPayload / total * 100 ); setBar( "metadataBar", a.totalMetadata / total * 100 ); setBar( "repeatBar", a.repetitiveMetadataBytes / total * 100 ); setBar( "duplicateBar", a.duplicatePayloadBytes / total * 100 ); setBar( "wasteBar", a.totalWaste / total * 100 ); $("payloadBarText").textContent = formatBytes( a.totalPayload ); $("metadataBarText").textContent = formatBytes( a.totalMetadata ); $("repeatBarText").textContent = formatBytes( a.repetitiveMetadataBytes ); $("duplicateBarText").textContent = formatBytes( a.duplicatePayloadBytes ); $("wasteBarText").textContent = formatBytes( a.totalWaste ); } function setBar( id, percent ){ $(id).style.width = Math.max( 0, Math.min( 100, percent ) ) + "%"; } /* ================================================================ HERO ================================================================ */ function renderHero(){ const a = state.analysis; const monthlyWaste = a.totalWaste * monthlyScale(); const monthlyCost = bytesToGB( monthlyWaste ) * selectedCombinedRate(); const wastePercent = a.totalTraffic ? a.totalWaste / a.totalTraffic * 100 : 0; const metadataPercent = a.metadataShare * 100; const repeatPercent = a.totalMetadata ? a.repetitiveMetadataBytes / a.totalMetadata * 100 : 0; $("totalWasteCost").textContent = money( monthlyCost ); $("totalWasteDetail").textContent = formatBytes( monthlyWaste ) + " of estimated addressable waste / month"; $("wastePercent").textContent = formatPercent( wastePercent ) + "%"; $("wastePercentDetail").textContent = formatBytes( a.totalTraffic ) + " captured traffic"; $("metadataPercent").textContent = formatPercent( metadataPercent ) + "%"; $("metadataDetail").innerHTML = metadataPercent > getNumber( "metadataThreshold", 20 ) ? ` ABOVE 20% THRESHOLD ` : ` BELOW THRESHOLD `; $("repeatPercent").textContent = formatPercent( repeatPercent ) + "%"; $("repeatDetail").innerHTML = repeatPercent > getNumber( "repeatThreshold", 20 ) ? ` REPETITIVE BLOAT ` : ` BELOW THRESHOLD `; $("duplicateBytes").textContent = formatBytes( a.duplicatePayloadBytes * monthlyScale() ); $("duplicateDetail").textContent = a.payloadPatterns .filter( p => p.occurrences > 1 ) .length + " repeated payload patterns"; } /* ================================================================ FINANCIALS ================================================================ */ function renderFinancials(){ const a = state.analysis; const vendor = VENDORS[ state.vendor ]; const monthlyWaste = a.totalWaste * monthlyScale(); const gb = bytesToGB( monthlyWaste ); const egress = gb * vendor.egress; const routing = gb * vendor.routing; const indexing = gb * vendor.indexing; const total = egress + routing + indexing; $("selectedVendor").textContent = vendor.name; $("financialWasteBytes").textContent = formatBytes( monthlyWaste ); $("egressCost").textContent = money( egress ); $("routingCost").textContent = money( routing ); $("indexCost").textContent = money( indexing ); $("financialTotal").textContent = money( total ); $("egressRate").textContent = `${vendor.name} egress assumption: $${vendor.egress.toFixed(3)}/GB`; $("routingRate").textContent = `${vendor.name} routing/ingest assumption: $${vendor.routing.toFixed(3)}/GB`; $("indexRate").textContent = `${vendor.name} indexing assumption: $${vendor.indexing.toFixed(3)}/GB`; } /* ================================================================ FINDINGS ================================================================ */ function renderFindings(){ const a = state.analysis; const findings = []; const metadataPercent = a.metadataShare * 100; const repeatPercent = a.totalMetadata ? a.repetitiveMetadataBytes / a.totalMetadata * 100 : 0; const topService = a.sourceMap[0]; const topHeader = a.headers[0]; const topPattern = a.metadataPatterns .find( p => p.occurrences > 1 ); /* Metadata. */ if( metadataPercent > getNumber( "metadataThreshold", 20 ) ){ findings.push(`
+
+**Metadata is consuming ${formatPercent( metadataPercent )}% of captured traffic. **That exceeds the configured ${getNumber( "metadataThreshold", 20 )}% threshold. The analyzer estimates **${formatBytes( a.metadataBloatBytes )} **of metadata above the threshold.
+
+`); }else{ findings.push(`
+
+**Metadata is below the configured threshold. **Current metadata share: ${formatPercent( metadataPercent )}%.
+
+`); } /* Repetitive metadata. */ if( repeatPercent > getNumber( "repeatThreshold", 20 ) ){ findings.push(`
+
+**Repetitive metadata is a material waste source. **${formatPercent( repeatPercent )}% of metadata repeats. The biggest repeated pattern is **${escapeHtml( topPattern ? topPattern.header : "unknown" )} **.
+
+`); } /* Top service. */ if(topService){ findings.push(`
+
+**Biggest microservice source: **${escapeHtml( topService.service )} accounts for **${formatBytes( topService.waste )} **of captured addressable waste. Expand it in the Waste Map to see the likely sidecar, headers and endpoints.
+
+`); } /* Top header. */ if(topHeader){ const classification = classifyHeader( topHeader.name ); findings.push(`
+
+**Biggest metadata field: ${escapeHtml( topHeader.name )} **generated **${formatBytes( topHeader.bytes )} **in the captured HAR, extrapolated to **${formatBytes( topHeader.bytes * monthlyScale() )} **per month.
+
+Why: ${escapeHtml( classification.why )}
+
+`); } /* Duplicate payloads. */ if( a.duplicatePayloadBytes > 0 ){ findings.push(`
+
+**Duplicate payloads detected. **${formatBytes( a.duplicatePayloadBytes )} of captured payload bytes are repeated-content candidates. Investigate polling, health checks, status APIs, configuration refreshes, and cache opportunities.
+
+`); } $("findings").innerHTML = findings.join(""); } /* ================================================================ VENDOR UI ================================================================ */ function renderVendors(){ const grid = $("vendorGrid"); grid.innerHTML = Object.entries( VENDORS ) .map( ([id,vendor]) => `
+
+${escapeHtml( vendor.name )}
+
+${escapeHtml( vendor.description )}
+$${vendor.routing.toFixed(3)} routing · $${vendor.indexing.toFixed(3)} index
+
+` ) .join(""); grid .querySelectorAll( ".vendor" ) .forEach(element => { element.addEventListener( "click", () => { state.vendor = element.dataset.vendor; renderVendors(); renderAll(); } ); }); } /* ================================================================ MAIN RENDER ================================================================ */ function renderAll(){ renderHero(); renderWasteMap(); renderTopSources(); renderTraffic(); renderHeaderLeaders(); renderMetadataPatterns(); renderPayloadPatterns(); renderEndpointTable(); renderFinancials(); renderFindings(); renderVendors(); } /* ================================================================ HEADER CLASSIFICATION ================================================================ */ function classifyHeader( name ){ const n = String(name) .toLowerCase(); if( /^x-envoy-/.test(n) ){ return { type: "Envoy proxy metadata", why: "Likely generated by an Envoy/Istio proxy and carried on repeated requests.", recommendation: "Check whether the collector can filter or drop unnecessary Envoy metadata." }; } if( /^x-istio-/.test(n) ){ return { type: "Istio metadata", why: "Likely service-mesh metadata attached to application traffic.", recommendation: "Review which Istio fields are actually required downstream." }; } if( /^x-forwarded-|^forwarded$/.test(n) ){ return { type: "Forwarding metadata", why: "Proxy/load-balancer forwarding information can become large across multiple hops.", recommendation: "Check whether every forwarding field is required at every hop." }; } if( /^traceparent$|^tracestate$/.test(n) ){ return { type: "Distributed tracing metadata", why: "Tracing context is propagated across requests and can multiply across service hops.", recommendation: "Review trace sampling and whether all propagation fields are required." }; } if( /^x-b3-/.test(n) || n === "b3" ){ return { type: "B3 tracing metadata", why: "B3 distributed tracing context is propagated through service calls.", recommendation: "Review B3 propagation and tracing sampling." }; } if( n === "cookie" || n === "set-cookie" ){ return { type: "Cookie metadata", why: "Cookies can be surprisingly large and are repeatedly attached to requests.", recommendation: "Remove unnecessary cookies from service-to-service requests." }; } if( n === "authorization" || n === "proxy-authorization" ){ return { type: "Authentication metadata", why: "Authentication headers are often repeated on every request.", recommendation: "Do not remove security controls blindly; instead review token size, scope and propagation." }; } if( /health|ready|liveness|readiness|probe/.test(n) ){ return { type: "Health-check metadata", why: "Likely associated with health/readiness polling.", recommendation: "Check polling frequency and whether health telemetry should be sampled." }; } if( n.startsWith("user-agent") ){ return { type: "Client identity metadata", why: "User-agent strings repeat across large numbers of requests.", recommendation: "Evaluate whether full user-agent data is needed in downstream telemetry." }; } if( n === "accept" || n === "accept-language" || n === "accept-encoding" || n === "cache-control" ){ return { type: "HTTP negotiation metadata", why: "Standard HTTP negotiation fields repeat across requests.", recommendation: "Usually low-value individually; prioritize if aggregate volume is significant." }; } if( /^x-/.test(n) ){ return { type: "Custom application metadata", why: "Custom X-* headers can become high-volume telemetry metadata.", recommendation: "Identify the producing service and verify whether the field is required." }; } return { type: "HTTP metadata", why: "Standard request/response metadata attached to network traffic.", recommendation: "Investigate only when aggregate volume crosses the waste threshold." }; } /* ================================================================ PAYLOAD REASON ================================================================ */ function inferPayloadReason( sample, endpoint ){ const text = String( sample || "" ).toLowerCase(); if( /health|healthy|healthcheck|readiness|liveness/.test( text + endpoint.toLowerCase() ) ){ return "Likely health/readiness polling."; } if( /status|ok|ready|alive|success/.test( text + endpoint.toLowerCase() ) ){ return "Likely repeated status response."; } if( /config|configuration|feature.?flag/.test( text + endpoint.toLowerCase() ) ){ return "Likely repeated configuration polling."; } if( /heartbeat|ping|keepalive/.test( text + endpoint.toLowerCase() ) ){ return "Likely heartbeat/polling traffic."; } return "Repeated response body; investigate caching, polling or event-driven alternatives."; } /* ================================================================ ENDPOINT RECOMMENDATION ================================================================ */ function endpointRecommendation( endpoint ){ if( endpoint.duplicatePayload > endpoint.metadata ){ return "Investigate duplicate payloads / polling."; } if( endpoint.repetitiveMetadata > endpoint.metadata * .5 ){ return "Investigate repetitive headers."; } if( endpoint.metadata > endpoint.payload ){ return "Review header and metadata volume."; } return "Review telemetry filtering and sampling."; } /* ================================================================ HEADER REPETITION ================================================================ */ function estimateHeaderRepetition( header ){ if( !header || !header.values || !header.values.size ){ return 0; } let total = header.occurrences; let repeated = 0; for( const value of header.values.values() ){ if( value.occurrences > 1 ){ repeated += value.occurrences - 1; } } return total ? repeated / total * 100 : 0; } /* ================================================================ MAP HELPERS ================================================================ */ function topMapKey(map){ if(!map || !map.size) return ""; return [...map.entries()] .sort( (a,b) => b[1] - a[1] )[0]?.[0] || ""; } function incrementMap( map, key, bytes ){ map.set( key, ( map.get(key) || 0 ) + bytes ); } /* ================================================================ HASH ================================================================ */ function hash(value){ let h1 = 0x811c9dc5; let h2 = 0x9e3779b9; for( let i = 0; i < value.length; i++ ){ const c = value.charCodeAt(i); h1 ^= c; h1 = Math.imul( h1, 16777619 ); h2 ^= ( c + i ); h2 = Math.imul( h2, 2246822519 ); } return ( (h1 >>> 0) .toString(16) .padStart(8,"0") + (h2 >>> 0) .toString(16) .padStart(8,"0") ); } /* ================================================================ URL ================================================================ */ function safeURL( value ){ try{ return new URL( value ); }catch(_){ return { hostname: "unknown", pathname: value || "/" }; } } /* ================================================================ FORMATTING ================================================================ */ function byteLength( value ){ return new TextEncoder() .encode( String(value) ) .length; } function formatBytes( bytes ){ if( !Number.isFinite(bytes) || bytes <= 0 ){ return "0 B"; } const units = [ "B", "KB", "MB", "GB", "TB", "PB" ]; let value = bytes; let index = 0; while( value >= 1024 && index < units.length - 1 ){ value /= 1024; index++; } let decimals; if(index === 0){ decimals = 0; }else if(value >= 100){ decimals = 0; }else if(value >= 10){ decimals = 1; }else{ decimals = 2; } return ( value.toFixed( decimals ) + " " + units[index] ); } function formatPercent( value ){ if( !Number.isFinite(value) ){ return "0.0"; } return value >= 10 ? value.toFixed(1) : value.toFixed(2); } function money( value ){ return new Intl.NumberFormat( "en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 } ).format( Number.isFinite(value) ? value : 0 ); } function bytesToGB( bytes ){ return bytes / (1024 ** 3); } function monthlyScale(){ return getNumber( "monthlyMultiplier", 30 ); } function selectedCombinedRate(){ const vendor = VENDORS[ state.vendor ]; return ( vendor.egress + vendor.routing + vendor.indexing ); } function getNumber( id, fallback ){ const element = $(id); if(!element) return fallback; const value = parseFloat( element.value ); return Number.isFinite(value) ? value : fallback; } /* ================================================================ STATUS ================================================================ */ function showStatus( message ){ const element = $("status"); element.innerHTML = escapeHtml( message ); element.classList.add( "visible" ); } /* ================================================================ ESCAPE ================================================================ */ function escapeHtml(value){
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+} function escapeAttr( value ){ return escapeHtml( value ); } function truncate( value, length ){ const text = String( value || "" ); return text.length > length ? text.slice( 0, length ) + "…" : text; } /* ================================================================ EXPORT REPORT ================================================================ Creates a local JSON report engineers can attach to tickets, Slack, Jira, architecture reviews, etc. ================================================================ */ function exportReport(){ const a = state.analysis; const report = { analyzer: "Deeproq Analyzer", generatedAt: new Date() .toISOString(), file: a.fileName, settings: { monthlyMultiplier: monthlyScale(), metadataThreshold: getNumber( "metadataThreshold", 20 ), repetitiveMetadataThreshold: getNumber( "repeatThreshold", 20 ), vendor: VENDORS[ state.vendor ].name }, summary: { capturedTraffic: formatBytes( a.totalTraffic ), payload: formatBytes( a.totalPayload ), metadata: formatBytes( a.totalMetadata ), metadataShare: formatPercent( a.metadataShare * 100 ) + "%", repetitiveMetadata: formatBytes( a.repetitiveMetadataBytes ), duplicatePayload: formatBytes( a.duplicatePayloadBytes ), addressableWaste: formatBytes( a.totalWaste ), monthlyAddressableWaste: formatBytes( a.totalWaste * monthlyScale() ) }, topServices: a.sourceMap .slice(0,25) .map( service => ({ service: service.service, traffic: formatBytes( service.traffic ), waste: formatBytes( service.waste ), monthlyWaste: formatBytes( service.waste * monthlyScale() ) }) ), topHeaders: a.headers .slice(0,50) .map( header => ({ header: header.name, occurrences: header.occurrences, capturedBytes: header.bytes, captured: formatBytes( header.bytes ), monthly: formatBytes( header.bytes * monthlyScale() ), owner: topMapKey( header.owners ), service: topMapKey( header.services ), repetition: formatPercent( estimateHeaderRepetition( header ) ) + "%", classification: classifyHeader( header.name ) }) ), topEndpoints: a.endpoints .slice(0,100) .map( endpoint => ({ service: endpoint.service, sidecar: endpoint.sidecar, endpoint: endpoint.endpoint, requests: endpoint.requests, traffic: formatBytes( endpoint.traffic ), metadata: formatBytes( endpoint.metadata ), repetitiveMetadata: formatBytes( endpoint.repetitiveMetadata ), duplicatePayload: formatBytes( endpoint.duplicatePayload ), waste: formatBytes( endpoint.waste ) }) ) }; const blob = new Blob( [ JSON.stringify( report, null, 2 ) ], { type: "application/json" } ); const url = URL.createObjectURL( blob ); const link = document.createElement( "a" ); link.href = url; link.download = "deeproq-waste-report.json"; link.click(); setTimeout( () => URL.revokeObjectURL( url ), 1000 ); } /* ================================================================ INITIALIZE ================================================================ */ renderVendors();
+  </script>
+</body>
+</html>
